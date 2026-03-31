@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class UpdateCourseDto {
   @IsOptional()
@@ -14,4 +14,9 @@ export class UpdateCourseDto {
   @IsOptional()
   @IsInt()
   creditWeight?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  quota?: number;
 }

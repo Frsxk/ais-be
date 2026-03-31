@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, MaxLength, Min } from 'class-validator';
 
 export class CreateCourseDto {
   @IsString()
@@ -13,4 +13,8 @@ export class CreateCourseDto {
 
   @IsInt()
   creditWeight!: number;
+
+  @IsInt()
+  @Min(1)
+  quota!: number;
 }

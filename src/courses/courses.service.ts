@@ -21,7 +21,7 @@ export class CoursesService {
   ) {}
 
   async create(createCourseDto: CreateCourseDto, lecturerId: number) {
-    const { code, name, creditWeight } = createCourseDto;
+    const { code, name, creditWeight, quota } = createCourseDto;
 
     // Explicit application layer validation
     const [existing] = await this.db
@@ -38,6 +38,7 @@ export class CoursesService {
         code,
         name,
         creditWeight,
+        quota,
         lecturerId,
       })
       .returning();

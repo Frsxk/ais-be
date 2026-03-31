@@ -6,6 +6,7 @@ import {
   integer,
   timestamp,
   pgEnum,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', ['student', 'lecturer']);
@@ -23,8 +24,24 @@ export const courses = pgTable('courses', {
   code: varchar('code', { length: 50 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   creditWeight: integer('credit_weight').notNull(),
+  quota: integer('quota').notNull(),
   lecturerId: integer('lecturer_id')
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+export const enrollments = pgTable(
+  'enrollments',
+  {
+    id: serial('id').primaryKey(),
+    studentId: integer('student_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    courseId: integer('course_id')
+      .references(() => courses.id, { onDelete: 'cascade' })
+      .notNull(),
+    enrolledAt: timestamp('enrolled_at').defaultNow().notNull(),
+  },
+  (t) => [unique().on(t.studentId, t.courseId)],
+);
