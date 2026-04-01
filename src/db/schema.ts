@@ -5,11 +5,22 @@ import {
   text,
   integer,
   timestamp,
+  time,
   pgEnum,
   unique,
 } from 'drizzle-orm/pg-core';
 
 export const roleEnum = pgEnum('role', ['student', 'lecturer']);
+
+export const dayOfWeekEnum = pgEnum('day_of_week', [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
+]);
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -45,3 +56,13 @@ export const enrollments = pgTable(
   },
   (t) => [unique().on(t.studentId, t.courseId)],
 );
+
+export const courseSchedules = pgTable('course_schedules', {
+  id: serial('id').primaryKey(),
+  courseId: integer('course_id')
+    .references(() => courses.id, { onDelete: 'cascade' })
+    .notNull(),
+  dayOfWeek: dayOfWeekEnum('day_of_week').notNull(),
+  startTime: time('start_time').notNull(),
+  endTime: time('end_time').notNull(),
+});

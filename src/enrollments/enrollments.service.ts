@@ -7,10 +7,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-import { and, count, eq, sum } from 'drizzle-orm';
+import { and, count, eq, inArray, sum } from 'drizzle-orm';
 import { DB_CONNECTION } from '../db/db.module';
 import * as schema from '../db/schema';
-import { courses, enrollments, users } from '../db/schema';
+import { courses, courseSchedules, enrollments, users } from '../db/schema';
 
 const MAX_CREDITS = 24;
 
@@ -66,6 +66,9 @@ export class EnrollmentsService {
     if (capacityResult.count >= course.quota) {
       throw new BadRequestException(`Class is full. Capacity: ${course.quota}`);
     }
+
+    // Check schedule conflicts
+    await this.checkScheduleConflicts(studentId, courseId);
 
     const [enrollment] = await this.db
       .insert(enrollments)
@@ -139,5 +142,68 @@ export class EnrollmentsService {
       .from(enrollments)
       .innerJoin(users, eq(enrollments.studentId, users.id))
       .where(eq(enrollments.courseId, courseId));
+  }
+
+  /**
+   * Detects time overlap: two sessions conflict when they share
+   * the same day and their time ranges intersect (startA < endB && startB < endA).
+   */
+  private async checkScheduleConflicts(
+    studentId: number,
+    targetCourseId: number,
+  ) {
+    // Get schedules for the target course
+    const targetSchedules = await this.db
+      .select()
+      .from(courseSchedules)
+      .where(eq(courseSchedules.courseId, targetCourseId));
+
+    if (targetSchedules.length === 0) {
+      return; // No schedules to conflict with
+    }
+
+    // Get all course IDs the student is already enrolled in
+    const enrolledRows = await this.db
+      .select({ courseId: enrollments.courseId })
+      .from(enrollments)
+      .where(eq(enrollments.studentId, studentId));
+
+    if (enrolledRows.length === 0) {
+      return; // Student has no enrollments yet
+    }
+
+    const enrolledCourseIds = enrolledRows.map((r) => r.courseId);
+
+    // Get all schedules for the student's enrolled courses
+    const enrolledSchedules = await this.db
+      .select({
+        courseId: courseSchedules.courseId,
+        dayOfWeek: courseSchedules.dayOfWeek,
+        startTime: courseSchedules.startTime,
+        endTime: courseSchedules.endTime,
+        courseCode: courses.code,
+        courseName: courses.name,
+      })
+      .from(courseSchedules)
+      .innerJoin(courses, eq(courseSchedules.courseId, courses.id))
+      .where(inArray(courseSchedules.courseId, enrolledCourseIds));
+
+    // Check each target schedule against enrolled schedules
+    for (const target of targetSchedules) {
+      for (const enrolled of enrolledSchedules) {
+        if (
+          target.dayOfWeek === enrolled.dayOfWeek &&
+          target.startTime < enrolled.endTime &&
+          enrolled.startTime < target.endTime
+        ) {
+          throw new BadRequestException(
+            `Schedule conflict on ${target.dayOfWeek}: ` +
+              `${target.startTime}-${target.endTime} overlaps with ` +
+              `${enrolled.courseCode} (${enrolled.courseName}) ` +
+              `${enrolled.startTime}-${enrolled.endTime}`,
+          );
+        }
+      }
+    }
   }
 }
