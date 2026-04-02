@@ -12,10 +12,15 @@ describe('AppController', () => {
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
+  describe('getApiInfo', () => {
+    it('should return API information', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+      expect(appController.getApiInfo()).toEqual({
+        name: 'AIS-NG API',
+        status: 'ok',
+        version: '1.0.0',
+        documentation: '/api/docs',
+      });
     });
   });
 });
