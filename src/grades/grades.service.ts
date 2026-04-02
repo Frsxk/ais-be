@@ -53,12 +53,9 @@ export class GradesService {
     private readonly db: PostgresJsDatabase<typeof schema>,
   ) {}
 
-  // ─── Component CRUD (Lecturer) ─────────────────────────────────
-
   async createComponent(dto: CreateComponentDto, lecturerId: number) {
     await this.verifyCourseOwnership(dto.courseId, lecturerId);
 
-    // Validate total weight does not exceed 100%
     const [weightResult] = await this.db
       .select({ total: sum(gradeComponents.weight) })
       .from(gradeComponents)
@@ -129,14 +126,10 @@ export class GradesService {
     return { success: true, message: `Component #${id} deleted` };
   }
 
-  // ─── Score Entry (Lecturer) ────────────────────────────────────
-
   async setScore(dto: SetScoreDto, lecturerId: number) {
-    // Verify the component belongs to a course this lecturer owns
     const component = await this.findComponentOrFail(dto.componentId);
     await this.verifyCourseOwnership(component.courseId, lecturerId);
 
-    // Verify the enrollment exists and is for this course
     const [enrollment] = await this.db
       .select()
       .from(enrollments)
@@ -150,7 +143,6 @@ export class GradesService {
       );
     }
 
-    // Upsert: insert or update on conflict
     const [existing] = await this.db
       .select()
       .from(studentGrades)
@@ -203,12 +195,8 @@ export class GradesService {
       .where(eq(enrollments.courseId, courseId));
   }
 
-  // ─── Publication (Lecturer) ────────────────────────────────────
-
   async togglePublish(courseId: number, lecturerId: number) {
     await this.verifyCourseOwnership(courseId, lecturerId);
-
-    // Validate total weight = 100% before publishing
     const [weightResult] = await this.db
       .select({ total: sum(gradeComponents.weight) })
       .from(gradeComponents)
@@ -222,7 +210,6 @@ export class GradesService {
 
     if (existing) {
       const newStatus = !existing.isPublished;
-      // Only enforce 100% when publishing, not when unpublishing
       if (newStatus && totalWeight !== 100) {
         throw new BadRequestException(
           `Cannot publish: total component weight is ${totalWeight}%, must be exactly 100%`,
@@ -257,10 +244,15 @@ export class GradesService {
     return publication;
   }
 
-  // ─── Student Views ─────────────────────────────────────────────
+  async getPublishStatus(courseId: number) {
+    const [publication] = await this.db
+      .select()
+      .from(gradePublications)
+      .where(eq(gradePublications.courseId, courseId));
+    return { isPublished: publication?.isPublished ?? false };
+  }
 
   async getMyGradesForCourse(courseId: number, studentId: number) {
-    // Ensure grades are published
     const [publication] = await this.db
       .select()
       .from(gradePublications)
@@ -269,7 +261,6 @@ export class GradesService {
       throw new ForbiddenException('Grades for this course are not published');
     }
 
-    // Get the student's enrollment for this course
     const [enrollment] = await this.db
       .select()
       .from(enrollments)
@@ -283,7 +274,6 @@ export class GradesService {
       throw new NotFoundException('You are not enrolled in this course');
     }
 
-    // Get scores with component details
     const scores = await this.db
       .select({
         componentName: gradeComponents.name,
@@ -310,7 +300,6 @@ export class GradesService {
   }
 
   async getMyGradeSummary(studentId: number) {
-    // Get all enrollments with course info
     const studentEnrollments = await this.db
       .select({
         enrollmentId: enrollments.id,
@@ -324,7 +313,6 @@ export class GradesService {
       .innerJoin(courses, eq(enrollments.courseId, courses.id))
       .where(eq(enrollments.studentId, studentId));
 
-    // Process only published courses
     const courseGrades: {
       courseCode: string;
       courseName: string;
@@ -368,7 +356,6 @@ export class GradesService {
       });
     }
 
-    // Group by semester for semester GPA
     const semesterMap = new Map<number, typeof courseGrades>();
     for (const cg of courseGrades) {
       const list = semesterMap.get(cg.semesterId) ?? [];
@@ -388,8 +375,6 @@ export class GradesService {
 
     return { semesters: semesterGPAs, cumulativeGPA };
   }
-
-  // ─── Helpers ───────────────────────────────────────────────────
 
   private calculateFinalScore(
     scores: { componentWeight: number; score: string }[],

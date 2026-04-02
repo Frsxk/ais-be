@@ -32,19 +32,21 @@ describe('AuthService', () => {
     it('should register a new user and return a token', async () => {
       const selectBuilder = createMockQueryBuilder([{ count: 0 }]);
       const insertBuilder = createMockQueryBuilder([
-        { id: 1, email: 'test@test.com', role: 'student' },
+        { id: 1, name: 'Test User', email: 'test@test.com', role: 'student' },
       ]);
       mockDb.select.mockReturnValueOnce(selectBuilder);
       mockDb.insert.mockReturnValueOnce(insertBuilder);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
 
       const result = await service.register({
+        name: 'Test User',
         email: 'test@test.com',
         password: 'password123',
         role: 'student',
       });
 
       expect(result.access_token).toBe('mock-jwt-token');
+      expect(result.user.name).toBe('Test User');
       expect(result.user.email).toBe('test@test.com');
       expect(bcrypt.hash).toHaveBeenCalledWith('password123', 10);
     });
@@ -55,6 +57,7 @@ describe('AuthService', () => {
 
       await expect(
         service.register({
+          name: 'Existing User',
           email: 'existing@test.com',
           password: 'password123',
           role: 'student',
@@ -68,6 +71,7 @@ describe('AuthService', () => {
       const selectBuilder = createMockQueryBuilder([
         {
           id: 1,
+          name: 'Login User',
           email: 'test@test.com',
           password: 'hashed-password',
           role: 'student',
@@ -82,6 +86,7 @@ describe('AuthService', () => {
       });
 
       expect(result.access_token).toBe('mock-jwt-token');
+      expect(result.user.name).toBe('Login User');
       expect(result.user.email).toBe('test@test.com');
     });
 
@@ -96,7 +101,13 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for wrong password', async () => {
       const selectBuilder = createMockQueryBuilder([
-        { id: 1, email: 'test@test.com', password: 'hashed', role: 'student' },
+        {
+          id: 1,
+          name: 'Wrong User',
+          email: 'test@test.com',
+          password: 'hashed',
+          role: 'student',
+        },
       ]);
       mockDb.select.mockReturnValueOnce(selectBuilder);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);

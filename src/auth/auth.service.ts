@@ -24,7 +24,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { email, password, role } = registerDto;
+    const { name, email, password, role } = registerDto;
 
     const [existing] = await this.db
       .select({ count: count() })
@@ -39,12 +39,14 @@ export class AuthService {
     const [newUser] = await this.db
       .insert(users)
       .values({
+        name,
         email,
         password: hashedPassword,
         role,
       })
       .returning({
         id: users.id,
+        name: users.name,
         email: users.email,
         role: users.role,
       });
@@ -81,6 +83,7 @@ export class AuthService {
       access_token: await this.jwtService.signAsync(payload),
       user: {
         id: user.id,
+        name: user.name,
         email: user.email,
         role: user.role,
       },

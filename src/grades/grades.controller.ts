@@ -81,6 +81,18 @@ export class GradesController {
     return this.gradesService.togglePublish(courseId, req.user.id);
   }
 
+  @Roles('lecturer')
+  @Get('publish/:courseId/status')
+  getPublishStatus(@Param('courseId', ParseIntPipe) courseId: number) {
+    return this.gradesService.getPublishStatus(courseId);
+  }
+
+  @Roles('student')
+  @Get('my/summary')
+  getMyGradeSummary(@Request() req: { user: { id: number } }) {
+    return this.gradesService.getMyGradeSummary(req.user.id);
+  }
+
   @Roles('student')
   @Get('my/:courseId')
   getMyGradesForCourse(
@@ -88,11 +100,5 @@ export class GradesController {
     @Request() req: { user: { id: number } },
   ) {
     return this.gradesService.getMyGradesForCourse(courseId, req.user.id);
-  }
-
-  @Roles('student')
-  @Get('my/summary')
-  getMyGradeSummary(@Request() req: { user: { id: number } }) {
-    return this.gradesService.getMyGradeSummary(req.user.id);
   }
 }
