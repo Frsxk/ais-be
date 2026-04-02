@@ -17,4 +17,7 @@ export class CreateCourseDto {
   @IsInt()
   @Min(1)
   quota!: number;
+
+  @IsInt()
+  semesterId!: number;
 }

@@ -19,4 +19,8 @@ export class UpdateCourseDto {
   @IsInt()
   @Min(1)
   quota?: number;
+
+  @IsOptional()
+  @IsInt()
+  semesterId?: number;
 }
