@@ -1,14 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { DB_CONNECTION } from '../db/db.module';
-import {
-  createMockDb,
-  createMockQueryBuilder,
-} from '../test/mock-db.helper';
+import { createMockDb, createMockQueryBuilder } from '../test/mock-db.helper';
 
 describe('SchedulesService', () => {
   let service: SchedulesService;
@@ -29,13 +23,24 @@ describe('SchedulesService', () => {
     it('should create a schedule for an owned course', async () => {
       const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 10 }]);
       const insertBuilder = createMockQueryBuilder([
-        { id: 1, courseId: 1, dayOfWeek: 'monday', startTime: '08:00', endTime: '10:00' },
+        {
+          id: 1,
+          courseId: 1,
+          dayOfWeek: 'monday',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
       ]);
       mockDb.select.mockReturnValueOnce(courseSelect);
       mockDb.insert.mockReturnValueOnce(insertBuilder);
 
       const result = await service.create(
-        { courseId: 1, dayOfWeek: 'monday', startTime: '08:00', endTime: '10:00' },
+        {
+          courseId: 1,
+          dayOfWeek: 'monday',
+          startTime: '08:00',
+          endTime: '10:00',
+        },
         10,
       );
 
@@ -48,7 +53,12 @@ describe('SchedulesService', () => {
 
       await expect(
         service.create(
-          { courseId: 1, dayOfWeek: 'monday', startTime: '08:00', endTime: '10:00' },
+          {
+            courseId: 1,
+            dayOfWeek: 'monday',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
           10,
         ),
       ).rejects.toThrow(ForbiddenException);
@@ -60,7 +70,12 @@ describe('SchedulesService', () => {
 
       await expect(
         service.create(
-          { courseId: 999, dayOfWeek: 'monday', startTime: '08:00', endTime: '10:00' },
+          {
+            courseId: 999,
+            dayOfWeek: 'monday',
+            startTime: '08:00',
+            endTime: '10:00',
+          },
           10,
         ),
       ).rejects.toThrow(NotFoundException);

@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 import { GradesService } from './grades.service';
 import { DB_CONNECTION } from '../db/db.module';
-import {
-  createMockDb,
-  createMockQueryBuilder,
-} from '../test/mock-db.helper';
+import { createMockDb, createMockQueryBuilder } from '../test/mock-db.helper';
 
 describe('GradesService', () => {
   let service: GradesService;
@@ -18,10 +15,7 @@ describe('GradesService', () => {
   beforeEach(async () => {
     mockDb = createMockDb();
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GradesService,
-        { provide: DB_CONNECTION, useValue: mockDb },
-      ],
+      providers: [GradesService, { provide: DB_CONNECTION, useValue: mockDb }],
     }).compile();
     service = module.get<GradesService>(GradesService);
   });
@@ -100,7 +94,9 @@ describe('GradesService', () => {
     it('should throw BadRequestException if enrollment and component are for different courses', async () => {
       const componentSelect = createMockQueryBuilder([{ id: 1, courseId: 1 }]);
       const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 10 }]);
-      const enrollmentSelect = createMockQueryBuilder([{ id: 1, courseId: 99 }]);
+      const enrollmentSelect = createMockQueryBuilder([
+        { id: 1, courseId: 99 },
+      ]);
 
       mockDb.select
         .mockReturnValueOnce(componentSelect)

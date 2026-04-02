@@ -1,14 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { DB_CONNECTION } from '../db/db.module';
-import {
-  createMockDb,
-  createMockQueryBuilder,
-} from '../test/mock-db.helper';
+import { createMockDb, createMockQueryBuilder } from '../test/mock-db.helper';
 
 describe('CoursesService', () => {
   let service: CoursesService;
@@ -18,10 +12,7 @@ describe('CoursesService', () => {
     mockDb = createMockDb();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CoursesService,
-        { provide: DB_CONNECTION, useValue: mockDb },
-      ],
+      providers: [CoursesService, { provide: DB_CONNECTION, useValue: mockDb }],
     }).compile();
 
     service = module.get<CoursesService>(CoursesService);
@@ -31,13 +22,27 @@ describe('CoursesService', () => {
     it('should create a course when code is unique', async () => {
       const selectBuilder = createMockQueryBuilder([{ count: 0 }]);
       const insertBuilder = createMockQueryBuilder([
-        { id: 1, code: 'CS101', name: 'Intro CS', creditWeight: 3, quota: 30, semesterId: 1, lecturerId: 1 },
+        {
+          id: 1,
+          code: 'CS101',
+          name: 'Intro CS',
+          creditWeight: 3,
+          quota: 30,
+          semesterId: 1,
+          lecturerId: 1,
+        },
       ]);
       mockDb.select.mockReturnValueOnce(selectBuilder);
       mockDb.insert.mockReturnValueOnce(insertBuilder);
 
       const result = await service.create(
-        { code: 'CS101', name: 'Intro CS', creditWeight: 3, quota: 30, semesterId: 1 },
+        {
+          code: 'CS101',
+          name: 'Intro CS',
+          creditWeight: 3,
+          quota: 30,
+          semesterId: 1,
+        },
         1,
       );
 
@@ -51,7 +56,13 @@ describe('CoursesService', () => {
 
       await expect(
         service.create(
-          { code: 'CS101', name: 'Intro CS', creditWeight: 3, quota: 30, semesterId: 1 },
+          {
+            code: 'CS101',
+            name: 'Intro CS',
+            creditWeight: 3,
+            quota: 30,
+            semesterId: 1,
+          },
           1,
         ),
       ).rejects.toThrow(ConflictException);

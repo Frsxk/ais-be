@@ -3,10 +3,7 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { DB_CONNECTION } from '../db/db.module';
-import {
-  createMockDb,
-  createMockQueryBuilder,
-} from '../test/mock-db.helper';
+import { createMockDb, createMockQueryBuilder } from '../test/mock-db.helper';
 import * as bcrypt from 'bcrypt';
 
 jest.mock('bcrypt');

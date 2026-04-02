@@ -6,10 +6,7 @@ import {
 } from '@nestjs/common';
 import { EnrollmentsService } from './enrollments.service';
 import { DB_CONNECTION } from '../db/db.module';
-import {
-  createMockDb,
-  createMockQueryBuilder,
-} from '../test/mock-db.helper';
+import { createMockDb, createMockQueryBuilder } from '../test/mock-db.helper';
 
 describe('EnrollmentsService', () => {
   let service: EnrollmentsService;
@@ -29,7 +26,9 @@ describe('EnrollmentsService', () => {
   describe('enroll', () => {
     it('should enroll a student when all checks pass', async () => {
       const mockTx = {
-        execute: jest.fn().mockResolvedValue([{ id: 1, quota: 30, credit_weight: 3 }]),
+        execute: jest
+          .fn()
+          .mockResolvedValue([{ id: 1, quota: 30, credit_weight: 3 }]),
         select: jest.fn(),
         insert: jest.fn(),
       };
@@ -72,7 +71,9 @@ describe('EnrollmentsService', () => {
 
     it('should throw ConflictException when already enrolled', async () => {
       const mockTx = {
-        execute: jest.fn().mockResolvedValue([{ id: 1, quota: 30, credit_weight: 3 }]),
+        execute: jest
+          .fn()
+          .mockResolvedValue([{ id: 1, quota: 30, credit_weight: 3 }]),
         select: jest.fn(),
       };
       const dupBuilder = createMockQueryBuilder([{ count: 1 }]);
@@ -87,7 +88,9 @@ describe('EnrollmentsService', () => {
 
     it('should throw BadRequestException when credit limit exceeded', async () => {
       const mockTx = {
-        execute: jest.fn().mockResolvedValue([{ id: 1, quota: 30, credit_weight: 4 }]),
+        execute: jest
+          .fn()
+          .mockResolvedValue([{ id: 1, quota: 30, credit_weight: 4 }]),
         select: jest.fn(),
       };
       const dupBuilder = createMockQueryBuilder([{ count: 0 }]);
@@ -105,7 +108,9 @@ describe('EnrollmentsService', () => {
 
     it('should throw BadRequestException when class is full', async () => {
       const mockTx = {
-        execute: jest.fn().mockResolvedValue([{ id: 1, quota: 2, credit_weight: 3 }]),
+        execute: jest
+          .fn()
+          .mockResolvedValue([{ id: 1, quota: 2, credit_weight: 3 }]),
         select: jest.fn(),
       };
       const dupBuilder = createMockQueryBuilder([{ count: 0 }]);
