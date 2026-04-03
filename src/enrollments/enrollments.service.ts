@@ -139,6 +139,7 @@ export class EnrollmentsService {
         enrollmentId: enrollments.id,
         enrolledAt: enrollments.enrolledAt,
         studentId: users.id,
+        studentName: users.name,
         studentEmail: users.email,
       })
       .from(enrollments)

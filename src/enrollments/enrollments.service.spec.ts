@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { EnrollmentsService } from './enrollments.service';
@@ -147,6 +148,38 @@ describe('EnrollmentsService', () => {
       mockDb.select.mockReturnValueOnce(selectBuilder);
 
       await expect(service.drop(1, 999)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('getStudentsByCourse', () => {
+    it('should return list of students with names', async () => {
+      const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 10 }]);
+      const studentsSelect = createMockQueryBuilder([
+        {
+          enrollmentId: 1,
+          enrolledAt: new Date(),
+          studentId: 1,
+          studentName: 'John Doe',
+          studentEmail: 'john@doe.com',
+        },
+      ]);
+
+      mockDb.select
+        .mockReturnValueOnce(courseSelect)
+        .mockReturnValueOnce(studentsSelect);
+
+      const result = await service.getStudentsByCourse(1, 10);
+      expect(result).toHaveLength(1);
+      expect(result[0].studentName).toBe('John Doe');
+    });
+
+    it('should throw ForbiddenException if lecturer does not own the course', async () => {
+      const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 99 }]);
+      mockDb.select.mockReturnValueOnce(courseSelect);
+
+      await expect(service.getStudentsByCourse(1, 10)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

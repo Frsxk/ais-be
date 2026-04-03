@@ -109,6 +109,34 @@ describe('GradesService', () => {
     });
   });
 
+  describe('getScoresByCourse', () => {
+    it('should return scores with student details', async () => {
+      const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 10 }]);
+      const scoresSelect = createMockQueryBuilder([
+        {
+          gradeId: 1,
+          enrollmentId: 1,
+          studentId: 1,
+          studentName: 'John Doe',
+          studentEmail: 'john@doe.com',
+          componentId: 1,
+          componentName: 'Mid-Term',
+          componentWeight: 40,
+          score: '90.00',
+        },
+      ]);
+
+      mockDb.select
+        .mockReturnValueOnce(courseSelect)
+        .mockReturnValueOnce(scoresSelect);
+
+      const result = await service.getScoresByCourse(1, 10);
+      expect(result).toHaveLength(1);
+      expect(result[0].studentName).toBe('John Doe');
+      expect(result[0].studentEmail).toBe('john@doe.com');
+    });
+  });
+
   describe('togglePublish', () => {
     it('should publish grades when total weight is 100%', async () => {
       const courseSelect = createMockQueryBuilder([{ id: 1, lecturerId: 10 }]);

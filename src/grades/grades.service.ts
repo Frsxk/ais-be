@@ -15,6 +15,7 @@ import {
   gradeComponents,
   gradePublications,
   studentGrades,
+  users,
 } from '../db/schema';
 import { CreateComponentDto } from './dto/create-component.dto';
 import { UpdateComponentDto } from './dto/update-component.dto';
@@ -181,6 +182,9 @@ export class GradesService {
       .select({
         gradeId: studentGrades.id,
         enrollmentId: studentGrades.enrollmentId,
+        studentId: users.id,
+        studentName: users.name,
+        studentEmail: users.email,
         componentId: studentGrades.componentId,
         componentName: gradeComponents.name,
         componentWeight: gradeComponents.weight,
@@ -192,6 +196,7 @@ export class GradesService {
         eq(studentGrades.componentId, gradeComponents.id),
       )
       .innerJoin(enrollments, eq(studentGrades.enrollmentId, enrollments.id))
+      .innerJoin(users, eq(enrollments.studentId, users.id))
       .where(eq(enrollments.courseId, courseId));
   }
 
